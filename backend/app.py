@@ -1,0 +1,48 @@
+from flask import Flask, jsonify
+from flask_cors import CORS
+import os
+from dotenv import load_dotenv
+from models import db
+
+# Import Blueprints
+from routes.user_routes import user_bp
+from routes.rfid_card_routes import rfid_card_bp
+from routes.battery_routes import battery_bp
+from routes.battery_health_log_routes import battery_health_log_bp
+from routes.monthly_billing_routes import monthly_billing_bp
+from routes.subscription_plan_routes import subscription_plan_bp
+from routes.station_routes import station_bp
+from routes.slot_routes import slot_bp
+from routes.swap_routes import swap_bp
+
+load_dotenv()
+
+app = Flask(__name__)
+CORS(app)
+
+# Database Configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI') or \
+    f"mysql+mysqlconnector://{os.environ.get('MYSQL_USER','root')}:{os.environ.get('MYSQL_PASSWORD','ines123')}@{os.environ.get('MYSQL_HOST','localhost')}:{os.environ.get('MYSQL_PORT','3306')}/{os.environ.get('MYSQL_DB','bss_db')}"
+
+db.init_app(app)
+
+with app.app_context():
+    db.create_all() # Create tables
+
+# Register Blueprints
+app.register_blueprint(user_bp, url_prefix='/api')
+app.register_blueprint(rfid_card_bp, url_prefix='/api')
+app.register_blueprint(battery_bp, url_prefix='/api')
+app.register_blueprint(battery_health_log_bp, url_prefix='/api')
+app.register_blueprint(monthly_billing_bp, url_prefix='/api')
+app.register_blueprint(subscription_plan_bp, url_prefix='/api')
+app.register_blueprint(station_bp, url_prefix='/api')
+app.register_blueprint(slot_bp, url_prefix='/api')
+app.register_blueprint(swap_bp, url_prefix='/api')
+
+@app.route('/')
+def hello():
+    return jsonify({"message": "Hello from Flask! Database connected."})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
